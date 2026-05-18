@@ -1,4 +1,4 @@
-FROM php:8.3-apache
+FROM php:8.3-cli
 
 RUN apt-get update && apt-get install -y \
     git \
@@ -37,15 +37,11 @@ RUN composer install --optimize-autoloader --no-interaction
 RUN npm install
 RUN npm run build
 
-RUN a2enmod rewrite
-
 RUN chown -R www-data:www-data /var/www/html
 RUN chmod -R 775 storage bootstrap/cache
 
-RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
-
-EXPOSE 80
+EXPOSE 8080
 
 CMD php artisan config:clear && \
     php artisan cache:clear && \
-    apache2-foreground
+    php artisan serve --host=0.0.0.0 --port=${PORT:-8080}
