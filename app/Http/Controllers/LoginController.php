@@ -37,6 +37,8 @@ class LoginController extends Controller
             Mail::to($usuario->correo)
                 ->send(new CodigoAcceso($codigo, $usuario->nombre));
         } catch (\Exception $e) {
+            
+            dd($e->getMessage());
             return back()->with('error', 'No se pudo enviar el código. Verifica tu correo.');
         }
 
