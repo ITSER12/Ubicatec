@@ -37,11 +37,15 @@ RUN composer install --optimize-autoloader --no-interaction
 RUN npm install
 RUN npm run build
 
+RUN a2enmod rewrite
+
 RUN chown -R www-data:www-data /var/www/html
 RUN chmod -R 775 storage bootstrap/cache
+
+RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
 
 EXPOSE 80
 
 CMD php artisan config:clear && \
     php artisan cache:clear && \
-    php artisan serve --host=0.0.0.0 --port=${PORT:-80}
+    apache2-foreground
