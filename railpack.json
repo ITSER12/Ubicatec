@@ -1,0 +1,9 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "php": {
+    "version": "8.3"
+  },
+  "extensions": [
+    "gd"
+  ]
+}
