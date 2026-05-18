@@ -32,19 +32,16 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
-# Install dependencies
-RUN composer install
-RUN npm install
+# Expose port used by Laravel
+EXPOSE 8000
 
-# CLEAN LARAVEL CACHE (BIEN HECHO)
 RUN php artisan config:clear && \
     php artisan cache:clear && \
     php artisan route:clear && \
     php artisan view:clear && \
     php artisan config:cache
 
-# Expose port used by Laravel
-EXPOSE 8000
-
-# Start server
+# Install dependencies
+RUN composer install
+RUN npm install
 CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=$PORT"]
