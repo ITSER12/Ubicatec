@@ -1,0 +1,47 @@
+////////// SIDEBAR ////////
+$sidebar-width-lg: 258px;
+$sidebar-width-mini: 185px;
+$sidebar-width-icon: 70px;
+
+$sidebar-dark-bg: #181824;
+$sidebar-dark-menu-color: #8e94a9;
+$sidebar-dark-menu-active-bg: transparent;
+$sidebar-dark-menu-active-color: darken($white, 30%);
+$sidebar-dark-menu-hover-bg: transparent;
+$sidebar-dark-menu-hover-color: theme-color(success);
+$sidebar-dark-submenu-color: $sidebar-dark-menu-color;
+$sidebar-dark-submenu-hover-bg: initial;
+$sidebar-dark-submenu-active-color: theme-color(success);
+$sidebar-dark-submenu-hover-color: darken($sidebar-dark-submenu-color, 30%);
+$sidebar-dark-menu-icon-color: #33c92d; 
+$sidebar-dark-menu-arrow-color: #9e9da0;
+$sidebar-dark-icon-bg: rgba(194,244,219,.12);
+$sidebar-dark-icon-color: #33c92d;
+$sidebar-dark-action-border: rgba(151,151,151,.27);
+
+
+$sidebar-menu-font-size: 0.937rem;
+$sidebar-menu-padding-y: .625rem;
+$sidebar-menu-padding-x: 2.375rem;
+
+$sidebar-submenu-font-size: .8125rem;
+$sidebar-submenu-item-padding: .75rem 2rem .75rem 2rem;
+
+$sidebar-icon-font-size: 1.125rem;
+$sidebar-arrow-font-size: .625rem;
+
+$sidebar-profile-bg: transparent;
+$sidebar-profile-padding: .75rem 1.625rem .75rem 1.188rem;
+
+$sidebar-mini-menu-padding: .8125rem 1rem .8125rem 1rem;
+
+$sidebar-icon-only-menu-padding: .5rem 1.625rem .5rem 1.188rem;
+$sidebar-icon-only-submenu-padding: 0 0 0 1.5rem;
+
+$rtl-sidebar-submenu-padding: 0 1.5rem 0 0;
+
+$icon-only-collapse-width: 190px;
+$icon-only-menu-bg-light: $sidebar-dark-menu-hover-bg; 
+$icon-only-menu-bg-dark: #1c1e2f;
+
+///////// SIDEBAR ////////

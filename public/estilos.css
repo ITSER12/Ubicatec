@@ -1,0 +1,79 @@
+body {
+    overflow-x: hidden;
+
+}
+
+/* Estilos para el sidebar */
+.sidebar {
+    height: 100vh;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: -250px;
+    background-color: #214d78;
+    padding-top: 60px;
+    transition: 0.3s;
+    z-index: 1000;
+
+
+
+}
+.sidebar::before {
+    content: "";
+    position: absolute;
+    top: 50%;        /* separa un poco desde arriba */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;     /* ancho más pequeño */
+    height: 100px;    /* alto proporcional */
+    border-radius: 50px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 1;    /* opacidad más baja */
+    pointer-events: none;
+    z-index: 0;
+}
+
+.sidebar a {
+    padding: 15px 25px;
+    text-decoration: none;
+    font-size: 22px;
+    color: #f8f9fa;
+    display: block;
+    transition: 0.2s;
+}
+.boton-sidebar {
+    width: 180px;        /* Ancho fijo deseado */
+    height: 45px;        /* Alto fijo deseado */
+    font-size: 16px;     /* Tamaño del texto */
+    display: block;
+    margin: 0 auto 15px; /* Centrado + espacio debajo */
+    text-align: center;
+}
+
+
+.sidebar a:hover {
+    background-color: #5c8bba;
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+/* Estilo para el botón de menú */
+#menu-toggle {
+    font-size: 24px;
+    margin: 20px;
+    cursor: pointer;
+    color: #343a40;
+}
+
+.content {
+    margin-left: 0;
+    transition: margin-left 0.3s;
+}
+
+.content.shifted {
+    margin-left: 250px;
+}
