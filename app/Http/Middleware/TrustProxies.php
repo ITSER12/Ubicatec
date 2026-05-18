@@ -8,16 +8,12 @@ use Illuminate\Http\Request;
 class TrustProxies extends Middleware
 {
     /**
-     * The trusted proxies for this application.
-     *
-     * @var array<int, string>|string|null
+     * Trust all proxies (IMPORTANTE en Railway, Render, Heroku, etc.)
      */
-    protected $proxies;
+    protected $proxies = '*';
 
     /**
-     * The headers that should be used to detect proxies.
-     *
-     * @var int
+     * Headers for proxy detection
      */
     protected $headers =
         Request::HEADER_X_FORWARDED_FOR |
