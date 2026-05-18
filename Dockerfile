@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libzip-dev \
     libsodium-dev \
-    libpg-dev \
+    libpq-dev \
     default-mysql-client \
     default-libmysqlclient-dev \
     libfreetype6-dev \
@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install Node.js and npm
-RUN curl -sL https://deb.nodesource.com/setup_18.x | bash && \
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get update && apt-get install -y nodejs
 
 # Set working directory
@@ -32,12 +32,12 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
-# Expose port used by `php artisan serve`
+# Expose port used by Laravel
 EXPOSE 8000
 
-# Install PHP and JS dependencies
+# Install dependencies
 RUN composer install
 RUN npm install
 
-# Run Laravel migrations and start server
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000
+# Start Laravel
+CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"]
