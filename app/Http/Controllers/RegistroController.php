@@ -4,11 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use App\Models\Usuario;
-use App\Mail\CodigoAcceso;
-
+use App\Services\BrevoService;
 
 class RegistroController extends Controller
 {
@@ -24,7 +22,7 @@ class RegistroController extends Controller
             'ape_materno' => 'nullable|string|max:100',
             'correo'      => 'required|email|unique:usuarios,correo',
             'password'    => 'required|min:6',
-            'carrera' => 'required|in:A,C,E,G,I,S,T',
+            'carrera'     => 'required|in:A,C,E,G,I,S,T',
         ], [
             'no_control.unique' => 'Ese número de control ya está registrado.',
             'correo.unique'     => 'Ese correo ya está en uso.',
@@ -36,22 +34,33 @@ class RegistroController extends Controller
         $codigo = rand(100000, 999999);
 
         Session::put('registro_datos', $request->only([
-            'no_control','nombre','ape_paterno','ape_materno','correo','password','carrera'
+            'no_control',
+            'nombre',
+            'ape_paterno',
+            'ape_materno',
+            'correo',
+            'password',
+            'carrera'
         ]));
+
         Session::put('registro_codigo', $codigo);
         Session::put('registro_correo', $request->correo);
         Session::put('registro_expira', now()->addMinutes(5));
-        Session::put('registro_step',   'registro');
+        Session::put('registro_step', 'registro');
 
+        // 📩 Enviar código con Brevo
         try {
-            Mail::to($request->correo)
-                ->send(new CodigoAcceso($codigo, $request->nombre));
+            app(BrevoService::class)->sendCodigo(
+                $request->correo,
+                $request->nombre,
+                $codigo
+            );
         } catch (\Exception $e) {
             return back()->withInput()
                 ->with('error', 'No se pudo enviar el correo. Verifica la dirección e intenta de nuevo.');
         }
 
-        return back();
+        return back()->with('success', 'Te enviamos un código a tu correo.');
     }
 
     // ════════════════════════════════════════════
@@ -66,29 +75,55 @@ class RegistroController extends Controller
             'codigo.digits'   => 'El código debe tener 6 dígitos.',
         ]);
 
+        // ⏰ Expiración
         if (!Session::has('registro_expira') || now()->gt(Session::get('registro_expira'))) {
-            Session::forget(['registro_datos','registro_codigo','registro_correo','registro_expira','registro_step']);
+            Session::forget([
+                'registro_datos',
+                'registro_codigo',
+                'registro_correo',
+                'registro_expira',
+                'registro_step'
+            ]);
+
             return redirect()->route('login')
                 ->with('error', 'El código expiró. Vuelve a registrarte.');
         }
 
+        // 🔐 Validar código
         if ((string) $request->codigo !== (string) Session::get('registro_codigo')) {
             return back()->with('error', 'Código incorrecto. Intenta de nuevo.');
         }
 
         $datos = Session::get('registro_datos');
 
-        // Doble verificación por si ya existe
+        // Doble validación
         if (DB::table('usuarios')->where('no_control', $datos['no_control'])->exists()) {
-            Session::forget(['registro_datos','registro_codigo','registro_correo','registro_expira','registro_step']);
-            return redirect()->route('login')->with('error', 'Ese número de control ya fue registrado.');
+            Session::forget([
+                'registro_datos',
+                'registro_codigo',
+                'registro_correo',
+                'registro_expira',
+                'registro_step'
+            ]);
+
+            return redirect()->route('login')
+                ->with('error', 'Ese número de control ya fue registrado.');
         }
 
         if (DB::table('usuarios')->where('correo', $datos['correo'])->exists()) {
-            Session::forget(['registro_datos','registro_codigo','registro_correo','registro_expira','registro_step']);
-            return redirect()->route('login')->with('error', 'Ese correo ya fue registrado.');
+            Session::forget([
+                'registro_datos',
+                'registro_codigo',
+                'registro_correo',
+                'registro_expira',
+                'registro_step'
+            ]);
+
+            return redirect()->route('login')
+                ->with('error', 'Ese correo ya fue registrado.');
         }
 
+        // 👤 Crear usuario
         Usuario::create([
             'no_control'  => $datos['no_control'],
             'nombre'      => $datos['nombre'],
@@ -100,7 +135,14 @@ class RegistroController extends Controller
             'rol'         => 'estudiante',
         ]);
 
-        Session::forget(['registro_datos','registro_codigo','registro_correo','registro_expira','registro_step']);
+        // 🧹 limpiar sesión
+        Session::forget([
+            'registro_datos',
+            'registro_codigo',
+            'registro_correo',
+            'registro_expira',
+            'registro_step'
+        ]);
 
         return redirect()->route('login')
             ->with('success', '¡Cuenta creada exitosamente! Ya puedes iniciar sesión.');
@@ -119,16 +161,20 @@ class RegistroController extends Controller
         }
 
         $codigo = rand(100000, 999999);
+
         Session::put('registro_codigo', $codigo);
         Session::put('registro_expira', now()->addMinutes(5));
 
         try {
-            Mail::to($datos['correo'])
-                ->send(new CodigoAcceso($codigo, $datos['nombre']));
+            app(BrevoService::class)->sendCodigo(
+                $datos['correo'],
+                $datos['nombre'],
+                $codigo
+            );
         } catch (\Exception $e) {
             return back()->with('error', 'No se pudo reenviar el correo.');
         }
 
-        return back()->with('success', '📧 Código reenviado a ' . $datos['correo']);
+        return back()->with('success', '📧 Código reenviado correctamente.');
     }
 }
