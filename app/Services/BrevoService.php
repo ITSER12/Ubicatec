@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
-use GetBrevo\Client\Configuration;
-use GetBrevo\Client\Api\TransactionalEmailsApi;
-use GetBrevo\Client\Model\SendSmtpEmail;
+use GuzzleHttp\Client;
+use SendinBlue\Client\Configuration;
+use SendinBlue\Client\Api\TransactionalEmailsApi;
+use SendinBlue\Client\Model\SendSmtpEmail;
 
 class BrevoService
 {
@@ -23,23 +24,38 @@ class BrevoService
 
     public function sendCodigo($to, $nombre, $codigo)
     {
-        $html = view('emails.codigo-acceso', [
-            'nombre' => $nombre,
-            'codigo' => $codigo
-        ])->render();
+        try {
 
-        $email = new SendSmtpEmail([
-            'to' => [
-                ['email' => $to]
-            ],
-            'sender' => [
-                'name' => env('MAIL_FROM_NAME', 'Sistema'),
-                'email' => env('MAIL_FROM_ADDRESS')
-            ],
-            'subject' => '🔐 Tu código de verificación',
-            'htmlContent' => $html
-        ]);
+            $html = view('emails.codigo-acceso', [
+                'nombre' => $nombre,
+                'codigo' => $codigo
+            ])->render();
 
-        return $this->api->sendTransacEmail($email);
+            $email = new SendSmtpEmail([
+                'sender' => [
+                    'name' => env('MAIL_FROM_NAME'),
+                    'email' => env('MAIL_FROM_ADDRESS')
+                ],
+
+                'to' => [
+                    [
+                        'email' => $to,
+                        'name' => $nombre
+                    ]
+                ],
+
+                'subject' => '🔐 Código de verificación',
+
+                'htmlContent' => $html
+            ]);
+
+            return $this->api->sendTransacEmail($email);
+
+        } catch (\Exception $e) {
+
+            \Log::error('Brevo Error: ' . $e->getMessage());
+
+            return false;
+        }
     }
 }
