@@ -5,8 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Usuario;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\CodigoAcceso;
+use App\Services\BrevoService;
 
 class AuthController extends Controller
 {
@@ -23,9 +22,16 @@ class AuthController extends Controller
             'password'   => 'required',
         ]);
 
-        $usuario = Usuario::where('no_control', $request->no_control)->first();
+        $usuario = Usuario::where(
+            'no_control',
+            $request->no_control
+        )->first();
 
-        if (!$usuario || $request->password != $usuario->password) {
+        // VALIDAR USUARIO
+        if (
+            !$usuario ||
+            $request->password != $usuario->password
+        ) {
 
             return response()->json([
                 'success' => false,
@@ -33,18 +39,21 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // GENERAR CODIGO
+        // GENERAR CÓDIGO
         $codigo = rand(100000, 999999);
 
-        // GUARDAR CODIGO
+        // GUARDAR CÓDIGO
         $usuario->codigo_verificacion = $codigo;
         $usuario->save();
 
         try {
 
-            // ENVIAR CORREO
-            Mail::to($usuario->correo)
-                ->send(new CodigoAcceso($codigo, $usuario->nombre));
+            // ENVIAR CORREO CON BREVO
+            app(BrevoService::class)->sendCodigo(
+                $usuario->correo,
+                $usuario->nombre,
+                $codigo
+            );
 
         } catch (\Exception $e) {
 
@@ -59,14 +68,13 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Código enviado',
             'no_control' => $usuario->no_control,
-
         ]);
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | VERIFICAR CODIGO
+    | VERIFICAR CÓDIGO
     |--------------------------------------------------------------------------
     */
 
@@ -77,10 +85,17 @@ class AuthController extends Controller
             'codigo'     => 'required',
         ]);
 
-        $usuario = Usuario::where('no_control', $request->no_control)
-            ->where('codigo_verificacion', $request->codigo)
-            ->first();
+        $usuario = Usuario::where(
+            'no_control',
+            $request->no_control
+        )
+        ->where(
+            'codigo_verificacion',
+            $request->codigo
+        )
+        ->first();
 
+        // VALIDAR CÓDIGO
         if (!$usuario) {
 
             return response()->json([
@@ -89,12 +104,14 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // LIMPIAR CODIGO
+        // LIMPIAR CÓDIGO
         $usuario->codigo_verificacion = null;
         $usuario->save();
 
         // CREAR TOKEN
-        $token = $usuario->createToken('mobile-token')->plainTextToken;
+        $token = $usuario
+            ->createToken('mobile-token')
+            ->plainTextToken;
 
         return response()->json([
             'success' => true,
@@ -123,7 +140,9 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return response()->json($request->user());
+        return response()->json(
+            $request->user()
+        );
     }
 
 
@@ -135,7 +154,9 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()
+            ->currentAccessToken()
+            ->delete();
 
         return response()->json([
             'success' => true,
